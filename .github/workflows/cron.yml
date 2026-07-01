@@ -1,0 +1,14 @@
+name: Ingest AI content
+
+on:
+  schedule:
+    - cron: "0 * * * *" # every hour
+  workflow_dispatch: # manual run button
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger ingest
+        run: |
+          curl -sf "https://YOUR-DOMAIN.vercel.app/api/cron/ingest?secret=${{ secrets.CRON_SECRET }}"
