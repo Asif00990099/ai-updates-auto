@@ -48,7 +48,24 @@ export async function getTodaysModels(limit = 50): Promise<Post[]> {
   if (error) throw error;
 
   const rows = (data ?? []) as Post[];
-  return rows.sort((a, b) => {
+
+  // Filter obvious spam: Hugging Face gets flooded with empty placeholder
+  // repos. Keep only models that show a real signal (a task tag, or any
+  // downloads/likes). Legit brand-new models still have a pipeline_tag.
+  const filtered = rows.filter((row) => {
+    const meta = (row.meta ?? {}) as {
+      downloads?: number;
+      likes?: number;
+      pipeline_tag?: string | null;
+    };
+    return (
+      !!meta.pipeline_tag ||
+      Number(meta.downloads ?? 0) > 0 ||
+      Number(meta.likes ?? 0) > 0
+    );
+  });
+
+  return filtered.sort((a, b) => {
     const da = Number((a.meta as { downloads?: number } | null)?.downloads ?? 0);
     const db = Number((b.meta as { downloads?: number } | null)?.downloads ?? 0);
     return db - da;

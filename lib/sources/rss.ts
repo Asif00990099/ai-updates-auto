@@ -4,10 +4,14 @@ import type { NormalizedItem } from "./types";
 
 const parser = new Parser();
 
+// Cap items per feed. Some feeds expose huge archives; without this a
+// single run can pull thousands of stale articles and bury fresh content.
+const MAX_ITEMS_PER_FEED = 15;
+
 async function fetchFeed(name: string, url: string): Promise<NormalizedItem[]> {
   const feed = await parser.parseURL(url);
 
-  return (feed.items ?? []).map((item) => ({
+  return (feed.items ?? []).slice(0, MAX_ITEMS_PER_FEED).map((item) => ({
     source: "rss",
     type: "news",
     title: item.title?.trim() ?? "Untitled",
